@@ -6,11 +6,8 @@ Created on Tue Nov  2 21:10:29 2021
 """
 
 
-import os
-
 import pandas as pd
 
-from core.paths import BASE_DIR, DATA_DIR
 from econdata.providers.statcan.schemas import TO_PARSE_DATES
 
 from ..common.funcs import dichotomize_series_ids
@@ -99,9 +96,6 @@ SERIES_IDS = {
 }
 
 
-os.chdir(DATA_DIR)
-
-
 def main(SERIES_IDS_INDEXES, SERIES_IDS_THOUSANDS, SERIES_IDS_PERSONS):
     df_index = get_data_frame_index(SERIES_IDS_INDEXES)
 
@@ -115,9 +109,7 @@ def main(SERIES_IDS_INDEXES, SERIES_IDS_THOUSANDS, SERIES_IDS_PERSONS):
 
     df["workers"] = df_index.div(df_index.loc[year, :]).mul(value).round(1)
 
-    FILE_NAME = "can_labour.pdf"
-    kwargs = {"fname": BASE_DIR / FILE_NAME, "format": "pdf", "dpi": 900}
-    df.plot(grid=True).get_figure().savefig(**kwargs)
+    df.plot(grid=True)
 
 
 if __name__ == "__main__":

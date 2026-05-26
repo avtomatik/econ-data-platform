@@ -3,7 +3,6 @@ from functools import cache
 import matplotlib.pyplot as plt
 import pandas as pd
 from thesis.src.lib.pull import pull_by_series_id
-from thesis.src.lib.transform import transform_year_sum
 
 from econdata.providers.statcan.provider import StatCanProvider
 

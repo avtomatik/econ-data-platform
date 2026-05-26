@@ -6,15 +6,14 @@ Created on Tue Nov  2 21:10:29 2021
 """
 
 
-import os
 from functools import cache
 
 import pandas as pd
 from stats.src.can.constants import BLUEPRINT_CAPITAL
 
-from core.paths import DATA_DIR
 from econdata.providers.statcan.provider import StatCanProvider
 from econdata.providers.statcan.schemas import TO_PARSE_DATES
+from econdata.providers.statcan.transforms import transform_year_mean
 
 # =============================================================================
 # TODO: Clear It Up
@@ -82,10 +81,6 @@ def stockpile_can(series_ids: dict[str, int]) -> pd.DataFrame:
         axis=1,
         sort=True,
     )
-
-
-def transform_year_mean(df: pd.DataFrame) -> pd.DataFrame:
-    return df.groupby(df.index.year).mean()
 
 
 def transform_sum(df: pd.DataFrame, name: str) -> pd.DataFrame:
@@ -161,8 +156,6 @@ def dichotomize_series_ids(
         },
     )
 
-
-os.chdir(DATA_DIR)
 
 # =============================================================================
 # Product

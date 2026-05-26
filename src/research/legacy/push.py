@@ -1,11 +1,3 @@
-from itertools import combinations
-
-import pandas as pd
-from thesis.src.lib.read import read_can
-
-from econdata.providers.statcan.provider import BASE_URL
-
-
 def build_push_data_frame(path_or_buf: str, blueprint: dict) -> None:
     """
     Builds pd.DataFrame & Loads It To CSV

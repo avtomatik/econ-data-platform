@@ -1,16 +1,5 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Sep 18 22:20:54 2021
-
-@author: Alexander Mikhailov
-"""
-
-
 import pandas as pd
-from common.funcs import get_pre_kwargs
 
-from can.constants import (BLUEPRINT_CAPITAL, BLUEPRINT_LABOUR,
-                           BLUEPRINT_PRODUCT)
 from can.stockpile import stockpile_can
 from core.paths import BASE_DIR
 
