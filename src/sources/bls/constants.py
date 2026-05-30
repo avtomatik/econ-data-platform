@@ -1,5 +1,7 @@
 SERIES_IDS = ["PCUOMFGOMFG", "PPIACO", "PRIME"]
-url_root = "https://download.bls.gov/pub/time.series/cu"
+
+BASE_API_URL = "https://download.bls.gov/pub/time.series/cu"
+
 contents_table = """9/13/2018  8:31 AM     38073676 cu.data.0.Current
 9/13/2018  8:31 AM      2791094 cu.data.1.AllItems
 9/13/2018  8:31 AM     10208894 cu.data.10.OtherWest
@@ -26,7 +28,8 @@ contents_table = """9/13/2018  8:31 AM     38073676 cu.data.0.Current
 2/25/1994  5:29 PM          323 cu.period
 9/13/2018  8:46 AM           61 cu.periodicity
 9/13/2018  8:31 AM      1367281 cu.series"""
-bls_urls = (
+
+BASE_API_URLS = (
     # =========================================================================
     # More Recent
     # =========================================================================
@@ -42,7 +45,8 @@ bls_urls = (
     "https://download.bls.gov/pub/time.series/wp/wp.data.0.Current",
     "https://www.bls.gov/opub/ted/2011/ted_20110224.htm",
 )
-kwargs = {
+
+BLS_READ_KWARGS = {
     "compression": "gzip",
     "header": 0,
     "sep": " ",

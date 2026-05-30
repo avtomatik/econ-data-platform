@@ -1,4 +1,5 @@
 BASE_URL = "https://apps.bea.gov/national/Release/TXT/FlatFiles.ZIP"
+
 SERIES_IDS = (
     # =====================================================================
     # Not Over There 'K100701'

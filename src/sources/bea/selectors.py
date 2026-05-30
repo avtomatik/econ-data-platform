@@ -10,3 +10,10 @@ def filter_series(
         & ~df[unit_col].str.contains("Years", case=False, na=False)
     )
     return df.loc[mask].copy()
+
+
+def filter_annual(df: pd.DataFrame, column: str = "subperiod") -> pd.DataFrame:
+    # =========================================================================
+    # Yearly Data
+    # =========================================================================
+    return df[df.loc[:, column] == 0].drop(column, axis=1)

@@ -1,21 +1,22 @@
 import io
 
-import pandas as pd
 import requests
 
-from sources.bls.constants import bls_urls, contents_table, kwargs, url_root
+from core.io import read_csv
+from sources.bls.constants import (BASE_API_URL, BASE_API_URLS,
+                                   BLS_READ_KWARGS, contents_table)
 
 
 def main() -> None:
     for line in contents_table.split("\n"):
-        response = requests.get("/".join((url_root, line.split()[-1])))
+        response = requests.get("/".join((BASE_API_URL, line.split()[-1])))
 
-        df = pd.read_csv(io.BytesIO(response.content))
+        df = read_csv(io.BytesIO(response.content))
+        print(df.head())
 
-    for url in bls_urls:
+    for url in BASE_API_URLS:
         response = requests.get(url)
-
         print(response.content)
 
-        kwargs["filepath_or_buffer"] = io.StringIO(response.content)
-        print(pd.read_csv(**kwargs))
+        df = read_csv(io.StringIO(response.content), **BLS_READ_KWARGS)
+        print(df.head())

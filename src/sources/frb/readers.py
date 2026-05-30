@@ -5,8 +5,10 @@ from xml import etree
 
 import pandas as pd
 
+from core.io import read_csv
 
-def read_frb_xml(file_path: Path) -> None:
+
+def read_zip_xml(file_path: Path) -> None:
     with zipfile.ZipFile(file_path) as archive:
         MAP_FILES = {_.filename: _.file_size for _ in archive.filelist}
         # =====================================================================
@@ -28,23 +30,20 @@ def read_frb_xml(file_path: Path) -> None:
 
 
 def read_frb_csv(file_path: Path) -> pd.DataFrame:
-    kwargs = {"filepath_or_buffer": file_path}
     # =====================================================================
     # Load
     # =====================================================================
-    df = pd.read_csv(**kwargs)
-    kwargs["index_col"] = 0
-    kwargs["usecols"] = range(5, df.shape[1])
+    df = read_csv(file_path)
+    kwargs = {"index_col": 0, "usecols": range(5, df.shape[1])}
     # =====================================================================
     # Re-Load
     # =====================================================================
-    df = pd.read_csv(**kwargs).transpose().rename_axis("period")
+    df = read_csv(file_path, **kwargs).transpose().rename_axis("period")
     df.index = pd.to_datetime(df.index)
     return df
 
 
 def read_usa_frb_archive(file_path: Path) -> None:
-    kwargs = {"index_col": 0, "skiprows": 4}
     with zipfile.ZipFile(file_path) as archive:
         # =====================================================================
         # Select the Largest File with min() Function
@@ -52,8 +51,8 @@ def read_usa_frb_archive(file_path: Path) -> None:
         with archive.open(
             min({_.filename: _.file_size for _ in archive.filelist})
         ) as f:
-            kwargs["filepath_or_buffer"] = f
-            df = pd.read_csv(**kwargs).dropna(axis=1, how="all").transpose()
+            kwargs = {"index_col": 0, "skiprows": 4}
+            df = read_csv(f, **kwargs).dropna(axis=1, how="all").transpose()
             return df.drop(df.index[:3]).rename_axis("period")
             # =================================================================
             # TODO: Further Development
@@ -62,10 +61,10 @@ def read_usa_frb_archive(file_path: Path) -> None:
             xroot = xtree.getroot()
 
 
-def read_xml_from_response_with_columns(
-    file, columns_expected: list[str] = ["TIME_PERIOD", "IP.B50001.S"]
+def read_api_response(
+    content, columns: list[str] = ["TIME_PERIOD", "IP.B50001.S"]
 ):
-    with zipfile.ZipFile(file) as archive:
+    with zipfile.ZipFile(content) as archive:
         # =========================================================================
         # Select the Largest File with min() Function
         # =========================================================================
@@ -89,4 +88,5 @@ def read_xml_from_response_with_columns(
                     ]
                 )
                 rows.append(row)
-            return pd.DataFrame(rows, columns=columns_expected)
+
+            return pd.DataFrame(rows, columns=columns)

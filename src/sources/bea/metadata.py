@@ -2,7 +2,8 @@ import zipfile
 
 import pandas as pd
 
-from core.paths import BASE_DIR, DATA_DIR
+from core.io import read_excel, write_parquet
+from core.paths import BRONZE_DIR, DATA_DIR
 
 
 def read_bea_metadata_sheet(
@@ -30,13 +31,12 @@ def read_bea_metadata_sheet(
         ================== =================================
     """
     kwargs = {
-        "io": xl_file,
         "sheet_name": sheet_name,
         "header": None,
         "nrows": 6,
         "usecols": range(1),
     }
-    return pd.read_excel(**kwargs).transpose()
+    return read_excel(xl_file, **kwargs).transpose()
 
 
 def normalize_bea_metadata(
@@ -80,4 +80,5 @@ def main(
                         ),
                     ]
                 )
-    df.to_csv(BASE_DIR / file_name, index=False)
+
+    df.pipe(write_parquet, BRONZE_DIR / file_name, index=False)
