@@ -12,4 +12,23 @@ SCHEMA = {
         "parse_dates": True,
     }
 }
+
 TABLE_ID = 3790031
+
+STATCAN_COLUMNS = [
+    "period",
+    "geo",
+    "seas",
+    "prices",
+    "naics",
+    "series_id",
+    "value",
+]
+
+
+def enforce_schema(df):
+    """Ensure DataFrame has required columns"""
+    missing = set(STATCAN_COLUMNS) - set(df.columns)
+    if missing:
+        raise ValueError(f"Missing expected StatCan columns: {missing}")
+    return df[STATCAN_COLUMNS]
