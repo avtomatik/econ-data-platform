@@ -1,17 +1,22 @@
+from pathlib import Path
+
 import pandas as pd
 
-from core.io import read_csv
-from core.paths import DATA_DIR
-from sources.imf.selectors import filter_df
+from core.io import read_csv, write_parquet
+from core.paths import BRONZE_DIR, DATA_DIR
 from sources.statcan.parsers import build_statcan_read_csv_kwargs
 from sources.statcan.schemas import SCHEMA, TABLE_ID
+from sources.statcan.selectors import filter_manufacturing
 
 
-def run() -> None:
+def run(
+    source_path: Path = DATA_DIR / f"dataset_can_{TABLE_ID:08n}-eng.zip",
+    output_dir: Path = BRONZE_DIR,
+) -> None:
     df = read_csv(
-        DATA_DIR / f"dataset_can_{TABLE_ID:08n}-eng.zip",
+        source_path,
         **build_statcan_read_csv_kwargs(TABLE_ID, SCHEMA),
-    ).pipe(filter_df)
+    ).pipe(filter_manufacturing)
     # =============================================================================
     # Kludge
     # =============================================================================
@@ -25,3 +30,5 @@ def run() -> None:
     wide["def"] = wide.iloc[:, 0].div(wide.iloc[:, 1])
     wide = wide.div(wide.loc[2012, :])
     wide["real_rebased"] = wide.iloc[:, 1].mul(wide.iloc[:, -1])
+
+    write_parquet(df, output_dir / "statcan_canada.parquet")

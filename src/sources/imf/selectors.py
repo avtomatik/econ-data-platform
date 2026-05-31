@@ -11,16 +11,6 @@ def filter_series(df: pd.DataFrame, series_id: str) -> pd.DataFrame:
     )
 
 
-def filter_df(df: pd.DataFrame) -> pd.DataFrame:
-    FILTER = (df["naics"] == "All industries (x 1,000,000)") & (
-        df["series_id"] != "v65201756"
-    )
-    FILTER = (df["naics"] == "Manufacturing (x 1,000,000)") & (
-        df["series_id"] != "v65201809"
-    )
-    return df[FILTER].iloc[:, -2:]
-
-
 def filter_country(df: pd.DataFrame, iso3: str) -> pd.DataFrame:
     return df[df["weo_country_code"] == iso3]
 

@@ -5,14 +5,11 @@ from sources.imf.constants import WEO_SERIES_IDS
 
 
 def extract_series(df: pd.DataFrame, series_id: str) -> pd.DataFrame:
-
     chunk = df[df["weo_subject_code"] == series_id]
     chunk.columns = ("period", series_id)
-    chunk = chunk.drop(
-        chunk[chunk.iloc[:, 11] == "Estimates Start After"].index
-    )
-    chunk = chunk.iloc[:, (11, 12)]
-    chunk.iloc[:, 1] = chunk.iloc[:, 1].astype(float)
+    chunk = chunk.drop(chunk[chunk["source"] == "Estimates Start After"].index)
+    chunk = chunk[["source", "value"]]
+    chunk["value"] = chunk["value"].astype(float)
     return set_period_index(chunk)
 
 

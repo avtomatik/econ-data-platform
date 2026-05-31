@@ -11,6 +11,10 @@ def read_excel(path: Path, **kwargs) -> pd.DataFrame:
     return pd.read_excel(path, **kwargs)
 
 
+def read_xml(path: Path, **kwargs) -> pd.DataFrame:
+    return pd.read_xml(path, **kwargs)
+
+
 def write_parquet(
     df: pd.DataFrame,
     path: Path,

@@ -2,24 +2,14 @@ import pandas as pd
 
 
 def pivot_series(df: pd.DataFrame, series_id: str) -> pd.DataFrame:
-    """
-    Retrieve Yearly Data for BEA Series ID
-    """
-    df = df[df["series_id"] == series_id]
 
-    source_ids = sorted(df["source_id"])
+    chunk = df[df["series_id"] == series_id]
 
-    frames = []
+    wide = chunk.pivot(index="period", columns="source_id", values="value")
 
-    for source_id in source_ids:
-        frame = (
-            df[df["source_id"] == source_id].iloc[:, [-1]].drop_duplicates()
-        )
-        frames.append(frame)
+    wide.columns = [
+        f"{column.split()[1].replace('.','_')}{series_id}"
+        for column in wide.columns
+    ]
 
-    wide = pd.concat(frames, axis=1, sort=True)
-    wide.columns = map(
-        lambda _: "".join((_.split()[1].replace(".", "_"), series_id)),
-        source_ids,
-    )
     return wide

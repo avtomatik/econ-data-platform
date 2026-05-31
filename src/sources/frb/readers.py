@@ -1,92 +1,73 @@
-import xml.etree.ElementTree as et
 import zipfile
 from pathlib import Path
-from xml import etree
+from typing import BinaryIO, Sequence
 
 import pandas as pd
+from lxml import etree
 
-from core.io import read_csv
+from core.io import read_csv, read_xml
+from sources.frb.constants import DEFAULT_OBSERVATION_COLUMNS
 
 
-def read_zip_xml(file_path: Path) -> None:
+def _largest_archive_member(
+    archive: zipfile.ZipFile,
+) -> zipfile.ZipInfo:
+    """Return the largest file contained in an archive."""
+    return max(
+        archive.infolist(),
+        key=lambda member: member.file_size,
+    )
+
+
+def _open_largest_member(
+    archive: zipfile.ZipFile,
+) -> BinaryIO:
+    member = _largest_archive_member(archive)
+    return archive.open(member)
+
+
+def read_archived_csv(file_path: Path) -> pd.DataFrame:
     with zipfile.ZipFile(file_path) as archive:
-        MAP_FILES = {_.filename: _.file_size for _ in archive.filelist}
-        # =====================================================================
-        # Select the Largest File with min() Function
-        # =====================================================================
-        with archive.open(min(MAP_FILES)) as f:
-            kwargs = {
-                "path_or_buffer": f,
-                "xpath": ".//frb:DataSet",
-                "namespaces": {
-                    "kf": "http://www.federalreserve.gov/structure/compact/G17_IP_MAJOR_INDUSTRY_GROUPS"
-                },
-            }
-            df = pd.read_xml(**kwargs)
-            kwargs = {"path_or_buffer": f, "index_col": 0, "skiprows": 4}
-            df = pd.read_xml(**kwargs).dropna(axis=1, how="all").transpose()
-            df.drop(df.index[:3], inplace=True)
-            df.rename_axis("period")
+        with _open_largest_member(archive) as stream:
+            return read_csv(
+                stream,
+                index_col=0,
+                skiprows=4,
+            )
 
 
-def read_frb_csv(file_path: Path) -> pd.DataFrame:
-    # =====================================================================
-    # Load
-    # =====================================================================
-    df = read_csv(file_path)
-    kwargs = {"index_col": 0, "usecols": range(5, df.shape[1])}
-    # =====================================================================
-    # Re-Load
-    # =====================================================================
-    df = read_csv(file_path, **kwargs).transpose().rename_axis("period")
-    df.index = pd.to_datetime(df.index)
-    return df
-
-
-def read_usa_frb_archive(file_path: Path) -> None:
+def read_archived_xml(
+    file_path: Path,
+    xpath: str,
+    namespaces: dict[str, str],
+) -> pd.DataFrame:
     with zipfile.ZipFile(file_path) as archive:
-        # =====================================================================
-        # Select the Largest File with min() Function
-        # =====================================================================
-        with archive.open(
-            min({_.filename: _.file_size for _ in archive.filelist})
-        ) as f:
-            kwargs = {"index_col": 0, "skiprows": 4}
-            df = read_csv(f, **kwargs).dropna(axis=1, how="all").transpose()
-            return df.drop(df.index[:3]).rename_axis("period")
-            # =================================================================
-            # TODO: Further Development
-            # =================================================================
-            xtree = et.parse(min(MAP_FILES))
-            xroot = xtree.getroot()
+        with _open_largest_member(archive) as stream:
+            return read_xml(
+                stream,
+                index_col=0,
+                skiprows=4,
+                xpath=xpath,
+                namespaces=namespaces,
+            )
 
 
 def read_api_response(
-    content, columns: list[str] = ["TIME_PERIOD", "IP.B50001.S"]
-):
-    with zipfile.ZipFile(content) as archive:
-        # =========================================================================
-        # Select the Largest File with min() Function
-        # =========================================================================
-        with archive.open(
-            min({_.filename: _.file_size for _ in archive.filelist})
-        ) as f:
-            tree = etree.parse(f)
-            doc = tree.getroot()
+    archive_content,
+    columns: Sequence[str] = DEFAULT_OBSERVATION_COLUMNS,
+) -> pd.DataFrame:
+    with zipfile.ZipFile(archive_content) as archive:
+        with _open_largest_member(archive) as stream:
+            root = etree.parse(stream)
 
-            # the base xpath expression
-            expr = '//*[local-name()="Obs"]'
-            rows = []
-            for r in doc.xpath(expr):
-                row = []
+    records = []
 
-                # use more xpath expressions to get to the target attributes
-                row.extend(
-                    [
-                        r.xpath(".//@TIME_PERIOD")[0],
-                        r.xpath(".//@OBS_VALUE")[0],
-                    ]
-                )
-                rows.append(row)
+    for obs in root.xpath('//*[local-name()="Obs"]'):
+        records.append(
+            (
+                obs.get("TIME_PERIOD"),
+                obs.get("OBS_VALUE"),
+            )
+        )
 
-            return pd.DataFrame(rows, columns=columns)
+    return pd.DataFrame(records, columns=columns)
